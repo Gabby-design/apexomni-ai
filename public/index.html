@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ApexOmni.AI — Omnichannel Concierge Console</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2306090F'/><path d='M50 15 L80 85 L65 85 L50 48 L35 85 L20 85 Z' fill='%2322D3EE'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -472,7 +473,7 @@
     </div>
     <div class="status-pill">
       <span class="pulse-dot"></span>
-      <span id="ws-status">Engine Active: Port 3050</span>
+      <span id="ws-status">Engine Active (Online)</span>
     </div>
   </header>
 
@@ -698,23 +699,32 @@
       if (e.key === 'Enter') submitMessage();
     }
 
-    // Connect WebSocket
+    // Connect WebSocket if supported, fallback cleanly to REST
     try {
       const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/concierge?sessionId=' + sessionId;
       const ws = new WebSocket(wsUrl);
       ws.onopen = () => {
         logTerminal('WS', 'Connected to WebSocket concierge feed');
-        document.getElementById('ws-status').innerText = 'Live Concierge Active';
+        document.getElementById('ws-status').innerText = 'Live Concierge Active (WebSocket)';
       };
       ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.message && msg.type === 'assistant_message') {
-          hideTypingIndicator();
-          appendMessage('assistant', msg.message, 'ApexOmni Concierge');
-        }
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.message && msg.type === 'assistant_message') {
+            hideTypingIndicator();
+            appendMessage('assistant', msg.message, 'ApexOmni Concierge');
+          }
+        } catch (_) {}
+      };
+      ws.onerror = () => {
+        document.getElementById('ws-status').innerText = 'Engine Active (REST Mode)';
+      };
+      ws.onclose = () => {
+        document.getElementById('ws-status').innerText = 'Engine Active (REST Mode)';
       };
     } catch (e) {
-      logTerminal('WS', 'WebSocket fallback to REST');
+      document.getElementById('ws-status').innerText = 'Engine Active (REST Mode)';
+      logTerminal('ROUTER', 'Operating on REST channel protocol');
     }
   </script>
 </body>

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { ConversationSession, LeadProfile, ChatMessage, BookingConfirmation } from '../types';
 import { env } from '../config/env';
 
@@ -16,10 +17,22 @@ export class DatabaseService {
   private saveTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
-    const dataDir = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    let dataDir = path.join(process.cwd(), 'data');
+
+    if (isServerless) {
+      dataDir = path.join(os.tmpdir(), 'apexomni-data');
     }
+
+    try {
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+    } catch {
+      // Fallback to os.tmpdir directly if cwd is read-only
+      dataDir = os.tmpdir();
+    }
+
     this.dbPath = path.join(dataDir, 'apexomni.json');
     this.state = this.load();
   }
@@ -33,7 +46,7 @@ export class DatabaseService {
         return parsed;
       }
     } catch (err) {
-      console.error('[DB Load Warning - Initializing Fresh State]', err);
+      // Keep fresh in-memory state
     }
     return {
       leads: {},
