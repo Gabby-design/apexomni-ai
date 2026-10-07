@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: apexomni-engine
+    env: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: META_VERIFY_TOKEN
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false

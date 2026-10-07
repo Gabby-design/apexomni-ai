@@ -1,0 +1,37 @@
+{
+  "name": "apexomni-ai-engine",
+  "version": "1.0.0",
+  "description": "ApexOmni.AI Omnichannel Receptionist Engine",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "simulate": "tsx src/simulator/cli.ts",
+    "test": "tsx src/simulator/cli.ts --test",
+    "test:webhooks": "tsx src/simulator/testWebhooks.ts",
+    "test:calendar": "tsx src/simulator/testCalendar.ts",
+    "tunnel": "npx localtunnel --port 3050"
+  },
+  "dependencies": {
+    "@google/genai": "^2.27.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.5",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.14",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

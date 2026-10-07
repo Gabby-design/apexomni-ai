@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApexOmni.AI — Omnichannel Concierge Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06090F;
+      --surface: #0D1320;
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-hover: #141c2e;
+      --accent-cyan: #22D3EE;
+      --accent-violet: #8B5CF6;
+      --accent-gradient: linear-gradient(135deg, #22D3EE 0%, #8B5CF6 100%);
+      --accent-gold: #c5a059;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748b;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(197, 160, 89, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.05) 0%, transparent 40%);
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--surface-border);
+      background: rgba(16, 23, 38, 0.7);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-badge {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-gold), #8c6b2d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #090d16;
+      box-shadow: 0 0 16px var(--accent-gold-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .pulse-dot {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .channel-selector {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+    }
+
+    .channel-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .channel-tab.active {
+      background: var(--surface-hover);
+      color: var(--text-main);
+      border: 1px solid var(--surface-border);
+    }
+
+    .chat-body {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 480px;
+      max-height: 540px;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+    }
+
+    .message-row.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .message-row.assistant {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .message-meta {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-bottom: 0.25rem;
+    }
+
+    .message-bubble {
+      padding: 0.85rem 1.15rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .message-row.user .message-bubble {
+      background: var(--accent-gradient);
+      color: #06090F;
+      font-weight: 500;
+      border-bottom-right-radius: 3px;
+    }
+
+    .message-row.assistant .message-bubble {
+      background: var(--surface-hover);
+      color: var(--text-main);
+      border: 1px solid var(--surface-border);
+      border-bottom-left-radius: 3px;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0.85rem 1.15rem;
+      background: var(--surface-hover);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      border-bottom-left-radius: 3px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+      opacity: 0.4;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .quick-actions {
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--surface-border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chip-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--text-main);
+      transform: translateY(-1px);
+    }
+
+    .chat-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--accent-gold);
+    }
+
+    .send-btn {
+      background: var(--accent-gradient);
+      color: #06090F;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .send-btn:hover {
+      opacity: 0.9;
+    }
+
+    .sidebar-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .profile-card {
+      padding: 1.5rem;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.85rem;
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric-value.status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-qualified {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-progress {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-escalated {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .terminal-card {
+      flex: 1;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      background: #060910;
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .terminal-logs {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .log-entry {
+      color: #94a3b8;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .log-entry .time {
+      color: #475569;
+      margin-right: 0.5rem;
+    }
+
+    .log-entry .tag {
+      color: var(--accent-gold);
+      font-weight: 700;
+      margin-right: 0.4rem;
+    }
+
+    .log-entry.event-tool {
+      color: var(--accent-cyan);
+    }
+
+    .log-entry.event-escalate {
+      color: var(--accent-rose);
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-group">
+      <div class="brand-badge">A</div>
+      <div>
+        <div class="brand-title">ApexOmni.AI</div>
+        <div class="brand-sub">Omnichannel Receptionist Engine</div>
+      </div>
+    </div>
+    <div class="status-pill">
+      <span class="pulse-dot"></span>
+      <span id="ws-status">Engine Active: Port 3050</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Chat Interface -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Live Channel Simulation</span>
+        <div class="channel-selector">
+          <button class="channel-tab active" data-channel="web" onclick="switchChannel('web')">Web Concierge</button>
+          <button class="channel-tab" data-channel="whatsapp" onclick="switchChannel('whatsapp')">WhatsApp</button>
+          <button class="channel-tab" data-channel="instagram" onclick="switchChannel('instagram')">Instagram</button>
+          <button class="channel-tab" data-channel="tiktok" onclick="switchChannel('tiktok')">TikTok</button>
+        </div>
+      </div>
+
+      <div class="chat-body" id="chat-stream">
+        <div class="message-row assistant">
+          <span class="message-meta">ApexOmni Concierge</span>
+          <div class="message-bubble">
+            Welcome to ApexOmni Clinic & MedSpa. Which treatment or aesthetic goal may we assist you with today?
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="chip-btn" onclick="sendQuick('I want to book an appointment now.')">Book now</button>
+        <button class="chip-btn" onclick="sendQuick('How much for lip fillers and Morpheus8?')">See prices</button>
+        <button class="chip-btn" onclick="sendQuick('What are your opening hours and location?')">Opening hours</button>
+        <button class="chip-btn" onclick="sendQuick('What consultation times are available this week?')">Check Availability</button>
+        <button class="chip-btn" onclick="sendQuick('Can you diagnose this persistent rash on my forehead?')">Diagnostic Guardrail</button>
+        <button class="chip-btn" onclick="sendQuick('I demand to speak with a human manager immediately.')">Escalate to Staff</button>
+      </div>
+
+      <div class="chat-footer">
+        <input type="text" id="user-input" class="chat-input" placeholder="Type customer message..." onkeydown="handleKeyDown(event)" />
+        <button id="send-button" class="send-btn" onclick="submitMessage()">Send</button>
+      </div>
+    </div>
+
+    <!-- Right Telemetry & Lead State -->
+    <div class="sidebar-pane">
+      <div class="card profile-card">
+        <div class="card-title">Active Prospect Profile</div>
+        <div class="profile-grid">
+          <div class="metric-box">
+            <div class="metric-label">Channel</div>
+            <div class="metric-value" id="prof-channel">Web</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Qualification</div>
+            <div class="metric-value status-badge badge-progress" id="prof-status">In Progress</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Desired Service</div>
+            <div class="metric-value" id="prof-service">Awaiting selection</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Phone Contact</div>
+            <div class="metric-value" id="prof-phone">Not provided</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal-card">
+        <div class="terminal-header">
+          <span>Engine Telemetry & Tool Calls</span>
+          <span id="log-count">0 Events</span>
+        </div>
+        <div class="terminal-logs" id="terminal-stream">
+          <div class="log-entry">
+            <span class="time">[INIT]</span>
+            <span class="tag">SYSTEM</span>
+            Omnichannel broker connected. Ready for inbound events.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentChannel = 'web';
+    let sessionId = 'web_session_' + Math.random().toString(36).substring(2, 9);
+    let eventCount = 1;
+
+    function logTerminal(tag, message, className = '') {
+      const stream = document.getElementById('terminal-stream');
+      const time = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = 'log-entry ' + className;
+      entry.innerHTML = `<span class="time">[${time}]</span><span class="tag">${tag}</span>${message}`;
+      stream.appendChild(entry);
+      stream.scrollTop = stream.scrollHeight;
+      eventCount++;
+      document.getElementById('log-count').innerText = eventCount + ' Events';
+    }
+
+    function switchChannel(channel) {
+      currentChannel = channel;
+      document.querySelectorAll('.channel-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('data-channel') === channel);
+      });
+      document.getElementById('prof-channel').innerText = channel.toUpperCase();
+      logTerminal('ROUTER', `Channel switched to ${channel.toUpperCase()}`);
+    }
+
+    let lastRenderedAssistant = '';
+    let lastRenderedTime = 0;
+
+    function appendMessage(role, text, meta) {
+      if (role === 'assistant') {
+        const now = Date.now();
+        if (lastRenderedAssistant === text && (now - lastRenderedTime) < 2000) {
+          return;
+        }
+        lastRenderedAssistant = text;
+        lastRenderedTime = now;
+      }
+
+      const stream = document.getElementById('chat-stream');
+      const row = document.createElement('div');
+      row.className = 'message-row ' + role;
+      row.innerHTML = `
+        <span class="message-meta">${meta}</span>
+        <div class="message-bubble">${text}</div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      hideTypingIndicator();
+      const stream = document.getElementById('chat-stream');
+      const row = document.createElement('div');
+      row.id = 'typing-indicator-row';
+      row.className = 'message-row assistant';
+      row.innerHTML = `
+        <span class="message-meta">ApexOmni Concierge</span>
+        <div class="typing-indicator">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const el = document.getElementById('typing-indicator-row');
+      if (el) el.remove();
+    }
+
+    async function submitMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      appendMessage('user', text, 'Prospect (' + currentChannel.toUpperCase() + ')');
+      logTerminal('INBOUND', `Received: "${text.substring(0, 40)}..."`);
+      showTypingIndicator();
+
+      try {
+        const startTime = Date.now();
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: sessionId,
+            message: text,
+            senderName: 'Master (Console)',
+            channel: currentChannel,
+            timestamp: Date.now()
+          })
+        });
+
+        const data = await res.json();
+        
+        // Pacing delay: quick responsive reflection
+        const elapsed = Date.now() - startTime;
+        const remainingDelay = Math.max(0, 250 - elapsed);
+        await new Promise(r => setTimeout(r, remainingDelay));
+
+        hideTypingIndicator();
+
+        if (data.replyText) {
+          appendMessage('assistant', data.replyText, 'ApexOmni Concierge');
+          logTerminal('OUTBOUND', `Dispatched response to ${currentChannel.toUpperCase()}`);
+        }
+
+        // Update Prospect Profile telemetry
+        if (text.toLowerCase().includes('botox') || text.toLowerCase().includes('filler')) {
+          document.getElementById('prof-service').innerText = 'Injectables & Aesthetics';
+          logTerminal('TOOL', 'updateLeadProfile(service="Injectables")', 'event-tool');
+        }
+        if (text.match(/\\d{3}[-.]?\\d{3}[-.]?\\d{4}/)) {
+          const match = text.match(/\\d{3}[-.]?\\d{3}[-.]?\\d{4}/)[0];
+          document.getElementById('prof-phone').innerText = match;
+          document.getElementById('prof-status').className = 'metric-value status-badge badge-qualified';
+          document.getElementById('prof-status').innerText = 'Qualified';
+          logTerminal('TOOL', 'updateLeadProfile(phone=' + match + ')', 'event-tool');
+        }
+        if (text.toLowerCase().includes('book') || text.toLowerCase().includes('11:30')) {
+          logTerminal('TOOL', 'bookAppointment(slotId="slot_1")', 'event-tool');
+        }
+        if (data.status === 'processed' && text.toLowerCase().includes('human')) {
+          document.getElementById('prof-status').className = 'metric-value status-badge badge-escalated';
+          document.getElementById('prof-status').innerText = 'Escalated';
+          logTerminal('ALERT', 'escalateToStaff(reason="Human Requested")', 'event-escalate');
+        }
+      } catch (err) {
+        logTerminal('ERROR', err.message);
+      }
+    }
+
+    function sendQuick(text) {
+      document.getElementById('user-input').value = text;
+      submitMessage();
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter') submitMessage();
+    }
+
+    // Connect WebSocket
+    try {
+      const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/concierge?sessionId=' + sessionId;
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        logTerminal('WS', 'Connected to WebSocket concierge feed');
+        document.getElementById('ws-status').innerText = 'Live Concierge Active';
+      };
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.message && msg.type === 'assistant_message') {
+          hideTypingIndicator();
+          appendMessage('assistant', msg.message, 'ApexOmni Concierge');
+        }
+      };
+    } catch (e) {
+      logTerminal('WS', 'WebSocket fallback to REST');
+    }
+  </script>
+</body>
+</html>
