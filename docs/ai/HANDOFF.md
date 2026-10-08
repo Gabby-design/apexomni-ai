@@ -32,4 +32,4 @@ last_reviewed: "2026-10-06"
 
 ## Git status
 
-No branch, stage, commit or history operation has been performed by an agent. Working tree: <!-- clean | uncommitted changes in … -->
+Committed to main: `b5e6d41` (feat(db): implement postgresql persistence and modular storage adapter with vercel support). Working tree clean. Ready for push.
