@@ -35,7 +35,11 @@ last_reviewed: "2026-10-06"
 
 ## 4. Persistence
 
-- In-memory `SessionStore` with identity mapping; extensible to PostgreSQL / Redis via `DATABASE_URL`.
+- Pluggable `StorageAdapter` interface in `src/db/storageAdapter.ts`.
+- `PostgresStorageAdapter`: Production-grade connection pooling (`pg.Pool`), SSL support, and automatic idempotent schema migration (`src/db/migrations/001_init.sql`).
+- `JsonStorageAdapter`: Zero-config local flat-file storage with auto-debounce and atomic write flushing (`data/apexomni.json`).
+- Dynamic runtime factory `createStorageAdapter()` selected via `DATABASE_URL`.
+- Health telemetry exposed via `/health` and `/api/health`.
 
 ## 5. Integrations
 

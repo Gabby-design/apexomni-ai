@@ -20,3 +20,4 @@ Plans say *what, in what order, and what "done" means*. Mark a task complete onl
 
 | Plan | What it delivered |
 | --- | --- |
+| [`active/plan-postgresql-persistence.md`](./active/plan-postgresql-persistence.md) | Modular `StorageAdapter` with `pg.Pool` PostgreSQL driver, schema migrations, zero-config JSON fallback, and storage telemetry |

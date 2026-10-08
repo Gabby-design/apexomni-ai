@@ -84,3 +84,19 @@ The engine automatically routes booking requests through Cal.com v2 API with gra
 1. Create a **Blueprint** or **Web Service** using `render.yaml`.
 2. Connect your repository.
 3. Add `GEMINI_API_KEY` in the Environment Variables dashboard.
+
+---
+
+## 6. PostgreSQL Database Configuration
+
+ApexOmni.AI supports optional managed PostgreSQL persistence across Supabase, Neon, Railway, and Render:
+
+1. Create a PostgreSQL database on your preferred cloud provider.
+2. Provide the connection string in your `.env` or cloud dashboard:
+   ```env
+   DATABASE_URL=postgres://user:password@ep-host.region.aws.neon.tech/dbname?sslmode=require
+   DATABASE_SSL=true
+   ```
+3. The engine automatically bootstraps all required tables (`leads`, `sessions`, `appointments`, `processed_messages`) on startup.
+4. If `DATABASE_URL` is omitted, the engine automatically falls back to local JSON flat-file storage (`data/apexomni.json`).
+5. Run `npm run test:storage` to verify database health and operations.

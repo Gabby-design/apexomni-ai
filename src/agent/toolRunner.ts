@@ -48,7 +48,7 @@ export class ToolRunner {
       { fullName: name, phone, email },
       service
     );
-    dbService.saveBooking(confirmation);
+    await dbService.saveBooking(confirmation);
     return confirmation;
   }
 
@@ -69,10 +69,10 @@ export class ToolRunner {
     booking_id: string;
     new_start_time: string;
   }): Promise<{ success: boolean; bookingId: string; updatedStartTime: string }> {
-    const booking = dbService.getBooking(args.booking_id);
+    const booking = await dbService.getBooking(args.booking_id);
     if (booking) {
       booking.startTime = args.new_start_time;
-      dbService.saveBooking(booking);
+      await dbService.saveBooking(booking);
     }
     return {
       success: true,
@@ -86,10 +86,10 @@ export class ToolRunner {
     booking_id: string;
     reason?: string;
   }): Promise<{ success: boolean; bookingId: string; status: string }> {
-    const booking = dbService.getBooking(args.booking_id);
+    const booking = await dbService.getBooking(args.booking_id);
     if (booking) {
       booking.depositStatus = 'waived';
-      dbService.saveBooking(booking);
+      await dbService.saveBooking(booking);
     }
     return {
       success: true,
@@ -109,7 +109,7 @@ export class ToolRunner {
     patchData?: Record<string, unknown>;
   }): Promise<{ success: boolean; lead: unknown }> {
     if (args.leadId && args.patchData) {
-      const updated = sessionStore.updateLead(args.leadId, args.patchData);
+      const updated = await sessionStore.updateLead(args.leadId, args.patchData);
       return { success: Boolean(updated), lead: updated };
     }
 
@@ -123,7 +123,7 @@ export class ToolRunner {
     }
 
     if (args.leadId) {
-      const updated = sessionStore.updateLead(args.leadId, patch);
+      const updated = await sessionStore.updateLead(args.leadId, patch);
       return { success: Boolean(updated), lead: updated };
     }
 

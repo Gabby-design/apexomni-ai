@@ -11,21 +11,24 @@ last_reviewed: "2026-10-06"
 
 ## Status
 
-**No active work.** <!-- or: ACTIVE — <task> — see below -->
+**No active work.**
 
-<!-- When active, one block per task:
-
-## <Task>
-**Objective:**
-**Current branch (read-only; never create/switch):**
+## Completed: PostgreSQL Persistence Layer & Modular StorageAdapter
+**Objective:** Add durable PostgreSQL store with modular `StorageAdapter` interface and zero-config JSON fallback.
+**Current branch (read-only; never create/switch):** main
 **Work completed:**
-**Files changed:**
-**Verification:** (what ran, result)
-**Remaining work:**
-**Known issues:**
-**Owner decisions needed:**
-**Next action:**
--->
+- Defined `StorageAdapter` interface (`src/db/storageAdapter.ts`).
+- Refactored `JsonStorageAdapter` with atomic sync flushing (`src/db/jsonAdapter.ts`).
+- Implemented `PostgresStorageAdapter` with `pg.Pool`, SSL, and idempotent schema migrations (`src/db/postgresAdapter.ts`, `src/db/migrations/001_init.sql`).
+- Wired dynamic factory `createStorageAdapter()` in `src/db/index.ts` with auto-fallback to local JSON store.
+- Updated `ConversationBroker`, `SessionStore`, `ToolRunner`, `AgentEngine`, and `app.ts` to asynchronous database methods.
+- Exposed storage engine telemetry in `/health` and `/api/health`.
+- Added automated storage test suite (`src/simulator/testStorage.ts` via `npm run test:storage`).
+- All test suites passing (`test:storage`, `test`, `test:webhooks`, `test:calendar`, `build`).
+- Local server active on port 3050.
+**Verification:** All gates passed.
+**Owner decisions needed:** None.
+**Next action:** Master review and commit.
 
 ## Git status
 

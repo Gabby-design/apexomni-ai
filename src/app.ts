@@ -24,12 +24,14 @@ app.get('/favicon.ico', (_req: Request, res: Response) => {
 });
 
 // 1. Health Checks
-const handleHealth = (_req: Request, res: Response) => {
+const handleHealth = async (_req: Request, res: Response) => {
+  const storageHealth = await dbService.getHealth();
   res.json({
     status: 'ok',
     service: 'ApexOmni.AI Omnichannel Receptionist Engine',
     timestamp: Date.now(),
     environment: process.env.VERCEL ? 'vercel_serverless' : 'standalone',
+    storage: storageHealth,
   });
 };
 
@@ -97,18 +99,18 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 });
 
 // 5. Appointments & Calendar Slot Query
-app.get('/api/appointments', (_req: Request, res: Response) => {
-  const bookings = dbService.getAllBookings();
+app.get('/api/appointments', async (_req: Request, res: Response) => {
+  const bookings = await dbService.getAllBookings();
   return res.json({ bookings, count: bookings.length });
 });
 
 // 6. Deposit Webhook Endpoint
-app.post('/api/deposit/webhook', (req: Request, res: Response) => {
+app.post('/api/deposit/webhook', async (req: Request, res: Response) => {
   const { bookingId, status } = req.body;
   if (!bookingId) {
     return res.status(400).json({ error: 'Missing bookingId' });
   }
-  const updated = dbService.updateDepositStatus(bookingId, status || 'collected');
+  const updated = await dbService.updateDepositStatus(bookingId, status || 'collected');
   if (!updated) {
     return res.status(404).json({ error: 'Booking not found' });
   }

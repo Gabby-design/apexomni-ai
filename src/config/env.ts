@@ -36,6 +36,10 @@ const envSchema = z.object({
 
   // Alerts & Persistence
   DATABASE_URL: z.string().optional(),
+  DATABASE_SSL: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
   SLACK_WEBHOOK_URL: z.string().optional(),
   STAFF_ALERT_PHONE: z.string().optional(),
 });

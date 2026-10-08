@@ -6,14 +6,15 @@
 
 - Owner: **Master** (always address as Master across all sessions)
 - Project: ApexOmni.AI Omnichannel Receptionist Engine.
-- Status: Foundational architecture, channel adapters (WhatsApp, IG, FB, TikTok, X, Web), broker, agent core, and test harness implemented. Dependencies installing.
+- Status: PostgreSQL persistence layer & modular StorageAdapter implemented with zero-config JSON flat-file fallback. All test harnesses passing (storage, omnichannel, webhooks, calendar).
+- Local Server: Active on http://localhost:3050.
 
 ## Fixed Decisions
 
 - Language/Runtime: TypeScript, Node.js >= 18.
 - Multi-channel ingestion: Modular normalizers emitting `NormalizedMessage`.
 - LLM Provider: Google Gemini API (`@google/genai`) with fallback receptionist logic.
-- Persistence: In-memory `SessionStore` with identity resolution and deduplication.
+- Persistence: Modular `StorageAdapter` interface with production `PostgresStorageAdapter` and zero-config `JsonStorageAdapter` fallback.
 
 ## Architecture
 

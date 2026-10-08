@@ -4,29 +4,28 @@ import {
   ConversationSession,
   LeadProfile,
   ChatMessage,
-  LeadQualificationStatus,
 } from '../types';
 import { dbService } from '../db';
 
 export class SessionStore {
   // Deduplication / Idempotency
-  isMessageProcessed(messageId: string): boolean {
-    return dbService.hasMessage(messageId);
+  async isMessageProcessed(messageId: string): Promise<boolean> {
+    return await dbService.hasMessage(messageId);
   }
 
-  markMessageProcessed(messageId: string): void {
-    dbService.addMessageId(messageId);
+  async markMessageProcessed(messageId: string): Promise<void> {
+    await dbService.addMessageId(messageId);
   }
 
   // Identity Resolution
-  getOrCreateLead(channel: ChannelType, channelUserId: string, senderName?: string): LeadProfile {
-    let existing = dbService.findLeadByChannelUser(channel, channelUserId);
+  async getOrCreateLead(channel: ChannelType, channelUserId: string, senderName?: string): Promise<LeadProfile> {
+    let existing = await dbService.findLeadByChannelUser(channel, channelUserId);
 
     if (existing) {
       if (senderName && !existing.fullName) {
         existing.fullName = senderName;
         existing.updatedAt = Date.now();
-        dbService.saveLead(existing);
+        await dbService.saveLead(existing);
       }
       return existing;
     }
@@ -43,16 +42,16 @@ export class SessionStore {
       updatedAt: Date.now(),
     };
 
-    dbService.saveLead(newLead);
+    await dbService.saveLead(newLead);
     return newLead;
   }
 
-  getLead(leadId: string): LeadProfile | undefined {
-    return dbService.getLead(leadId);
+  async getLead(leadId: string): Promise<LeadProfile | undefined> {
+    return await dbService.getLead(leadId);
   }
 
-  updateLead(leadId: string, patch: Partial<LeadProfile>): LeadProfile | undefined {
-    const lead = dbService.getLead(leadId);
+  async updateLead(leadId: string, patch: Partial<LeadProfile>): Promise<LeadProfile | undefined> {
+    const lead = await dbService.getLead(leadId);
     if (!lead) return undefined;
 
     Object.assign(lead, patch, { updatedAt: Date.now() });
@@ -62,13 +61,13 @@ export class SessionStore {
       lead.qualificationStatus = 'qualified';
     }
 
-    dbService.saveLead(lead);
+    await dbService.saveLead(lead);
     return lead;
   }
 
   // Conversation Session Management
-  getOrCreateSession(channel: ChannelType, channelUserId: string, leadId: string): ConversationSession {
-    let session = dbService.getSessionByChannelUser(channel, channelUserId);
+  async getOrCreateSession(channel: ChannelType, channelUserId: string, leadId: string): Promise<ConversationSession> {
+    let session = await dbService.getSessionByChannelUser(channel, channelUserId);
 
     if (!session) {
       session = {
@@ -82,18 +81,18 @@ export class SessionStore {
         updatedAt: Date.now(),
         lastMessageTimestamp: Date.now(),
       };
-      dbService.saveSession(session);
+      await dbService.saveSession(session);
     }
 
     return session;
   }
 
-  addMessage(sessionId: string, message: ChatMessage): void {
-    dbService.addSessionMessage(sessionId, message);
+  async addMessage(sessionId: string, message: ChatMessage): Promise<void> {
+    await dbService.addSessionMessage(sessionId, message);
   }
 
-  setSessionStatus(sessionId: string, status: ConversationSession['status']): void {
-    dbService.updateSessionStatus(sessionId, status);
+  async setSessionStatus(sessionId: string, status: ConversationSession['status']): Promise<void> {
+    await dbService.updateSessionStatus(sessionId, status);
   }
 }
 

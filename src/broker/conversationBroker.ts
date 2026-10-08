@@ -16,27 +16,27 @@ export class ConversationBroker {
   async handleInbound(message: NormalizedMessage): Promise<BrokerResult> {
     try {
       // 1. Deduplication / Idempotency check
-      if (sessionStore.isMessageProcessed(message.id)) {
+      if (await sessionStore.isMessageProcessed(message.id)) {
         return { status: 'duplicate_ignored' };
       }
-      sessionStore.markMessageProcessed(message.id);
+      await sessionStore.markMessageProcessed(message.id);
 
       // 2. Identity Resolution
-      const lead = sessionStore.getOrCreateLead(
+      const lead = await sessionStore.getOrCreateLead(
         message.channel,
         message.channelUserId,
         message.senderName
       );
 
       // 3. Session Resolution
-      const session = sessionStore.getOrCreateSession(
+      const session = await sessionStore.getOrCreateSession(
         message.channel,
         message.channelUserId,
         lead.id
       );
 
       // 4. Record user message
-      sessionStore.addMessage(session.id, {
+      await sessionStore.addMessage(session.id, {
         role: 'user',
         content: message.messageText,
         timestamp: message.timestamp,
@@ -50,7 +50,7 @@ export class ConversationBroker {
       );
 
       // 6. Record assistant reply
-      sessionStore.addMessage(session.id, {
+      await sessionStore.addMessage(session.id, {
         role: 'assistant',
         content: replyText,
         timestamp: Date.now(),

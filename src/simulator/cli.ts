@@ -31,7 +31,7 @@ async function runAutomatedTests() {
   const res2 = await conversationBroker.handleInbound(waMsg2);
   console.log(`Inbound: "${waMsg2.messageText}"`);
   console.log(`AI Reply: "${res2.replyText}"`);
-  const lead1 = sessionStore.getLead(res2.leadId!);
+  const lead1 = await sessionStore.getLead(res2.leadId!);
   console.log(`Lead Status: ${lead1?.qualificationStatus} | Service: ${lead1?.requestedService} | Phone: ${lead1?.phone}\n`);
 
   // Test 2: Instagram Non-Diagnostic Guardrail
@@ -106,13 +106,13 @@ async function runAutomatedTests() {
   console.log(`Result Status: ${resWeb.status} | Session Status: escalated\n`);
 
   // Test 7: CRM & Storage Verification
-  console.log('[Test 7] Verify Multi-Channel Persistence in JSON CRM Database');
-  const leadWa = sessionStore.getLead(res2.leadId!);
-  const leadIg = sessionStore.getLead(resIg.leadId!);
-  const leadFb = sessionStore.getLead(resFb.leadId!);
-  const leadTt = sessionStore.getLead(resTt.leadId!);
-  const leadTw = sessionStore.getLead(resTw.leadId!);
-  const leadWeb = sessionStore.getLead(resWeb.leadId!);
+  console.log('[Test 7] Verify Multi-Channel Persistence in CRM Database');
+  const leadWa = await sessionStore.getLead(res2.leadId!);
+  const leadIg = await sessionStore.getLead(resIg.leadId!);
+  const leadFb = await sessionStore.getLead(resFb.leadId!);
+  const leadTt = await sessionStore.getLead(resTt.leadId!);
+  const leadTw = await sessionStore.getLead(resTw.leadId!);
+  const leadWeb = await sessionStore.getLead(resWeb.leadId!);
 
   console.log(`- WhatsApp Lead: ${leadWa?.fullName || leadWa?.channelUserId} [${leadWa?.qualificationStatus}]`);
   console.log(`- Instagram Lead: ${leadIg?.fullName || leadIg?.channelUserId} [${leadIg?.qualificationStatus}]`);

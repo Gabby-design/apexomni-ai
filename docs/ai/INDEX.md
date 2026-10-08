@@ -25,7 +25,7 @@ last_reviewed: "2026-10-06"
 
 | Document | Read it when |
 | --- | --- |
-| docs/ai/prd/prd.md | the task touches product behaviour — the authoritative product text |
+| [`prd/prd-postgresql-persistence.md`](./prd/prd-postgresql-persistence.md) | PostgreSQL persistence & modular storage adapter specification |
 | [`plans/INDEX.md`](./plans/INDEX.md) | starting any task — find the active plan and its acceptance criteria |
 | [`decisions/INDEX.md`](./decisions/INDEX.md) | a choice feels open — it may already be decided |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | changing structure, boundaries, persistence, integrations |

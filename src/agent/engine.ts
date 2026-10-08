@@ -221,26 +221,26 @@ export class AgentEngine {
     const phoneMatch = text.match(/(\+?\d{1,2}\s?)?(\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}/);
     if (phoneMatch) {
       lead.phone = phoneMatch[0].trim();
-      sessionStore.updateLead(lead.id, { phone: lead.phone });
+      await sessionStore.updateLead(lead.id, { phone: lead.phone });
     }
 
     // 2. Email extraction
     const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     if (emailMatch) {
       lead.email = emailMatch[0].trim();
-      sessionStore.updateLead(lead.id, { email: lead.email });
+      await sessionStore.updateLead(lead.id, { email: lead.email });
     }
 
     // 3. Service detection
     if (lower.includes('botox') || lower.includes('filler') || lower.includes('inject')) {
       lead.requestedService = 'Injectables & Aesthetics';
-      sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
+      await sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
     } else if (lower.includes('skin') || lower.includes('laser') || lower.includes('facial') || lower.includes('contour')) {
       lead.requestedService = 'Facial Contouring & Laser';
-      sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
+      await sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
     } else if (lower.includes('sculpt') || lower.includes('body')) {
       lead.requestedService = 'Body Contouring';
-      sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
+      await sessionStore.updateLead(lead.id, { requestedService: lead.requestedService });
     }
 
     // 4. Downtime & recovery questions

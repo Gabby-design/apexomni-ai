@@ -1,180 +1,37 @@
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { ConversationSession, LeadProfile, ChatMessage, BookingConfirmation } from '../types';
 import { env } from '../config/env';
+import { StorageAdapter, StorageHealthInfo } from './storageAdapter';
+import { JsonStorageAdapter } from './jsonAdapter';
+import { PostgresStorageAdapter } from './postgresAdapter';
 
-export interface DatabaseState {
-  leads: Record<string, LeadProfile>;
-  sessions: Record<string, ConversationSession>;
-  appointments: Record<string, BookingConfirmation>;
-  processedMessageIds: string[];
+export * from './storageAdapter';
+export * from './jsonAdapter';
+export * from './postgresAdapter';
+
+export function createStorageAdapter(connectionUrl?: string): StorageAdapter {
+  const dbUrl = connectionUrl || env.DATABASE_URL;
+
+  if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
+    try {
+      console.log('[Storage] Initializing PostgreSQL storage adapter...');
+      return new PostgresStorageAdapter({
+        connectionString: dbUrl,
+        ssl: env.DATABASE_SSL,
+      });
+    } catch (err) {
+      console.error('[Storage Error] Failed to construct PostgresStorageAdapter, falling back to JSON:', err);
+    }
+  }
+
+  console.log('[Storage] Initializing Local JSON flat-file storage adapter...');
+  return new JsonStorageAdapter();
 }
 
-export class DatabaseService {
-  private dbPath: string;
-  private state: DatabaseState;
-  private saveTimeout: NodeJS.Timeout | null = null;
+export const storageService: StorageAdapter = createStorageAdapter();
 
-  constructor() {
-    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-    let dataDir = path.join(process.cwd(), 'data');
+// Initialize schema or sync storage on module load
+storageService.init().catch((err) => {
+  console.error('[Storage Init Error]', err);
+});
 
-    if (isServerless) {
-      dataDir = path.join(os.tmpdir(), 'apexomni-data');
-    }
-
-    try {
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-    } catch {
-      // Fallback to os.tmpdir directly if cwd is read-only
-      dataDir = os.tmpdir();
-    }
-
-    this.dbPath = path.join(dataDir, 'apexomni.json');
-    this.state = this.load();
-  }
-
-  private load(): DatabaseState {
-    try {
-      if (fs.existsSync(this.dbPath)) {
-        const raw = fs.readFileSync(this.dbPath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        if (!parsed.appointments) parsed.appointments = {};
-        return parsed;
-      }
-    } catch (err) {
-      // Keep fresh in-memory state
-    }
-    return {
-      leads: {},
-      sessions: {},
-      appointments: {},
-      processedMessageIds: [],
-    };
-  }
-
-  ensureSynced(): void {
-    try {
-      if (fs.existsSync(this.dbPath)) {
-        const raw = fs.readFileSync(this.dbPath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        if (parsed) {
-          if (!parsed.appointments) parsed.appointments = {};
-          if (!parsed.leads) parsed.leads = {};
-          if (!parsed.sessions) parsed.sessions = {};
-          if (!parsed.processedMessageIds) parsed.processedMessageIds = [];
-          this.state = parsed;
-        }
-      }
-    } catch {
-      // Keep existing in-memory state on temporary lock
-    }
-  }
-
-  saveSync(): void {
-    try {
-      fs.writeFileSync(this.dbPath, JSON.stringify(this.state, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('[DB Save Error]', err);
-    }
-  }
-
-  private scheduleSave(): void {
-    if (this.saveTimeout) clearTimeout(this.saveTimeout);
-    this.saveTimeout = setTimeout(() => {
-      this.saveSync();
-    }, 50);
-  }
-
-  // Deduplication
-  hasMessage(messageId: string): boolean {
-    this.ensureSynced();
-    return this.state.processedMessageIds.includes(messageId);
-  }
-
-  addMessageId(messageId: string): void {
-    this.state.processedMessageIds.push(messageId);
-    if (this.state.processedMessageIds.length > 5000) {
-      this.state.processedMessageIds.shift();
-    }
-    this.scheduleSave();
-  }
-
-  // Leads
-  saveLead(lead: LeadProfile): void {
-    this.state.leads[lead.id] = lead;
-    this.scheduleSave();
-  }
-
-  getLead(leadId: string): LeadProfile | undefined {
-    return this.state.leads[leadId];
-  }
-
-  findLeadByChannelUser(channel: string, channelUserId: string): LeadProfile | undefined {
-    return Object.values(this.state.leads).find(
-      (l) => l.channel === channel && l.channelUserId === channelUserId
-    );
-  }
-
-  // Sessions
-  saveSession(session: ConversationSession): void {
-    this.state.sessions[session.id] = session;
-    this.scheduleSave();
-  }
-
-  getSessionByChannelUser(channel: string, channelUserId: string): ConversationSession | undefined {
-    return Object.values(this.state.sessions).find(
-      (s) => s.channel === channel && s.channelUserId === channelUserId
-    );
-  }
-
-  addSessionMessage(sessionId: string, message: ChatMessage): void {
-    const session = this.state.sessions[sessionId];
-    if (session) {
-      session.history.push(message);
-      session.updatedAt = Date.now();
-      session.lastMessageTimestamp = message.timestamp;
-      this.scheduleSave();
-    }
-  }
-
-  updateSessionStatus(sessionId: string, status: ConversationSession['status']): void {
-    const session = this.state.sessions[sessionId];
-    if (session) {
-      session.status = status;
-      session.updatedAt = Date.now();
-      this.scheduleSave();
-    }
-  }
-
-  // Appointments / Slot Locks
-  saveBooking(booking: BookingConfirmation): void {
-    this.ensureSynced();
-    if (!this.state.appointments) this.state.appointments = {};
-    this.state.appointments[booking.bookingId] = booking;
-    this.saveSync();
-  }
-
-  getBooking(bookingId: string): BookingConfirmation | undefined {
-    this.ensureSynced();
-    return this.state.appointments?.[bookingId];
-  }
-
-  getAllBookings(): BookingConfirmation[] {
-    this.ensureSynced();
-    return Object.values(this.state.appointments || {});
-  }
-
-  updateDepositStatus(bookingId: string, status: BookingConfirmation['depositStatus']): boolean {
-    this.ensureSynced();
-    if (!this.state.appointments || !this.state.appointments[bookingId]) return false;
-    this.state.appointments[bookingId].depositStatus = status;
-    this.saveSync();
-    return true;
-  }
-}
-
-export const dbService = new DatabaseService();
+// Backward compatibility alias
+export const dbService = storageService;
